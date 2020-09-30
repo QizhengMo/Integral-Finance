@@ -22,7 +22,7 @@ class _MainNavigationState extends State<MainNavigation> {
     Home(),
     Investment(),
     Charity(),
-    Settings(),
+    Profile(),
   ]; // to store nested tabs
   final PageStorageBucket bucket = PageStorageBucket();
   Widget currentScreen = Home(); // Our first view in viewport
@@ -137,7 +137,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     minWidth: 40,
                     onPressed: () {
                       setState(() {
-                        currentScreen = Settings();
+                        currentScreen = Profile();
                         currentTab = 3;
                       });
                     },

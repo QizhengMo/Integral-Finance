@@ -2,18 +2,19 @@ import 'package:finance/model/authModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class Settings extends StatefulWidget {
+class Profile extends StatefulWidget {
   @override
-  _SettingsState createState() => _SettingsState();
+  _ProfileState createState() => _ProfileState();
 }
 
-class _SettingsState extends State<Settings> {
+class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
      return Scaffold(
       appBar: AppBar(
-        title: Text(''),
-      ),
+        title: Text('Profile')
+        ),
+       body: Center(child: Text('${context.watch<AuthModel>().username}'),),
     );
   }
 }

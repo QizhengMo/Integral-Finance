@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+
+final apiBase = "http://104.156.233.57:5000/";
 final mainColor = Color(0xff4864E6);
 final backgroundColor = Color(0XffF2F4FF);
 

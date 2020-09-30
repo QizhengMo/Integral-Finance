@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:finance/main.dart';
 import 'package:finance/model/authModel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,14 +11,10 @@ import 'package:finance/utilities/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-//Implemented following https://www.youtube.com/watch?v=6kaEbTfb444
-
-
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
 }
-
 
 class _LoginState extends State<Login> {
   bool _rememberMe = false;
@@ -28,43 +28,48 @@ class _LoginState extends State<Login> {
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-          child: Stack(
-            children: <Widget>[
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                color: mainColor,
-              ),
-              Container(
-                child: CustomPaint(
-                  painter: LogoCirclePainter(MediaQuery.of(context).size.width),
-                  child: Container(
-                      child: Image(image: AssetImage('assets/pics/loginLogo.png')),
-                    height: 150,
-                    margin: EdgeInsets.only(top: 50,left: 40),
+          child: Builder(
+            builder: (context) => Stack(
+              children: <Widget>[
+                Container(
+                  height: double.infinity,
+                  width: double.infinity,
+                  color: mainColor,
+                ),
+                Container(
+                  child: CustomPaint(
+                    painter:
+                        LogoCirclePainter(MediaQuery.of(context).size.width),
+                    child: Container(
+                      child:
+                          Image(image: AssetImage('assets/pics/loginLogo.png')),
+                      height: 150,
+                      margin: EdgeInsets.only(top: 50, left: 40),
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                height: double.infinity,
-                margin: EdgeInsets.only(top: 0.3 * MediaQuery.of(context).size.height),
-                padding: EdgeInsets.symmetric(horizontal: 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(height: 30.0),
-                    _buildUsernameFiled(),
-                    SizedBox(height: 10.0),
-                    _buildPasswordField(),
-                    SizedBox(height: 10),
-                    _buildRememberMeCheckbox(),
-                    SizedBox(height: 70),
-                    _buildLoginBtn(context),
-                    _buildSignupBtn(),
-                  ],
+                Container(
+                  height: double.infinity,
+                  margin: EdgeInsets.only(
+                      top: 0.3 * MediaQuery.of(context).size.height),
+                  padding: EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(height: 30.0),
+                      _buildUsernameFiled(),
+                      SizedBox(height: 10.0),
+                      _buildPasswordField(),
+                      SizedBox(height: 10),
+                      _buildRememberMeCheckbox(),
+                      SizedBox(height: 70),
+                      _buildLoginBtn(context),
+                      _buildSignupBtn(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -158,7 +163,8 @@ class _LoginState extends State<Login> {
             ),
           ),
           Text(
-            'Remember me', style: titleTextStyle,
+            'Remember me',
+            style: titleTextStyle,
           ),
         ],
       ),
@@ -171,7 +177,7 @@ class _LoginState extends State<Login> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 5.0,
-        onPressed: logInRoute,
+        onPressed: () => logInRoute(context),
         padding: EdgeInsets.all(15.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
@@ -217,28 +223,46 @@ class _LoginState extends State<Login> {
     );
   }
 
-  void logInRoute() async {
-
-    final response =
-    await http.get('http://google.com');
+  void logInRoute(BuildContext context) async {
+    final uri = apiBase + "user/";
+    final response = await http.put(
+      uri,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+          <String, String>{'username': '$_username', 'password': '$_password'}),
+    );
 
     if (response.statusCode == 200) {
-      context.read<AuthModel>().login(_username);
-      Navigator.pushNamedAndRemoveUntil(context, '/main', (Route<dynamic> route) => false);
-    } else {
-
+        if (jsonDecode(response.body)['success']) {
+          context.read<AuthModel>().login(_username);
+          Navigator.pushNamedAndRemoveUntil(
+              context, '/main', (Route<dynamic> route) => false);
+        }
+      } else {
+        print(response.statusCode);
+        print(response.body);
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text(
+            'Incorrect Password/Username',
+            style: TextStyle(color: mainColor),
+          ),
+          backgroundColor: Colors.white,
+          action: SnackBarAction(
+            label: "Dismiss",
+            onPressed: () {
+              Scaffold.of(context).hideCurrentSnackBar();
+            },
+            textColor: Colors.red
+          ),
+        ));
     }
-
-
   }
 
   void signupRoute() async {
-
     Navigator.pushNamed(context, '/signup');
-
   }
-
-
 }
 
 class LogoCirclePainter extends CustomPainter {
