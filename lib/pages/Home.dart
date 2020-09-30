@@ -103,7 +103,6 @@ class _BudgetCardState extends State<BudgetCard> {
                 (val) {updateTotal();}
             )},
             child: Container(
-              color: backgroundColor,
               padding: EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +128,8 @@ class _BudgetCardState extends State<BudgetCard> {
                     progressColor: (widget.spent / widget.total) < 1 ? mainColor : Colors.red,
                     percent: (widget.spent / widget.total) < 1 ? (widget.spent / widget.total) : 1,
                     center: Text(
-                      '${widget.spent} / ${widget.total}'
+                      '${widget.spent} / ${widget.total}',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   )
                 ],

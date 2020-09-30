@@ -18,6 +18,7 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   bool _rememberMe = false;
+  bool _canInput = true;
   var _username = '';
   var _password = '';
 
@@ -86,6 +87,7 @@ class _LoginState extends State<Login> {
           decoration: inputBoxStyle,
           height: 60.0,
           child: TextFormField(
+            enabled: _canInput,
             keyboardType: TextInputType.name,
             style: TextStyle(
               color: Colors.black,
@@ -224,6 +226,7 @@ class _LoginState extends State<Login> {
   }
 
   void logInRoute(BuildContext context) async {
+    _canInput = false;
     final uri = apiBase + "user/";
     final response = await http.put(
       uri,
@@ -235,28 +238,26 @@ class _LoginState extends State<Login> {
     );
 
     if (response.statusCode == 200) {
-        if (jsonDecode(response.body)['success']) {
-          context.read<AuthModel>().login(_username);
-          Navigator.pushNamedAndRemoveUntil(
-              context, '/main', (Route<dynamic> route) => false);
-        }
-      } else {
-        print(response.statusCode);
-        print(response.body);
-        Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text(
-            'Incorrect Password/Username',
-            style: TextStyle(color: mainColor),
-          ),
-          backgroundColor: Colors.white,
-          action: SnackBarAction(
+      if (jsonDecode(response.body)['success']) {
+        context.read<AuthModel>().login(_username);
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/main', (Route<dynamic> route) => false);
+      }
+    } else {
+      _canInput = true;
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text(
+          'Incorrect Password/Username',
+          style: TextStyle(color: mainColor),
+        ),
+        backgroundColor: Colors.white,
+        action: SnackBarAction(
             label: "Dismiss",
             onPressed: () {
               Scaffold.of(context).hideCurrentSnackBar();
             },
-            textColor: Colors.red
-          ),
-        ));
+            textColor: Colors.red),
+      ));
     }
   }
 
