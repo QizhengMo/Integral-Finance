@@ -1,15 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 
-String jsonString = """
-  {
-  "name": "John Smith",
-  "email": "john@example.com"
-  }  
-  """;
-
-Map<String, dynamic> user = jsonDecode(jsonString);
-
 class AuthModel with ChangeNotifier, DiagnosticableTreeMixin {
   String _username = '';
   String get username => _username;

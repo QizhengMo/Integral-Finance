@@ -1,5 +1,8 @@
+import 'package:badges/badges.dart';
+import 'package:finance/model/DonationModel.dart';
 import 'package:finance/model/authModel.dart';
 import 'package:finance/utilities/constants.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:finance/model/authModel.dart';
@@ -16,35 +19,60 @@ class Charity extends StatefulWidget {
   _CharityState createState() => _CharityState();
 }
 
-class _CharityState extends State<Charity> {
+class _CharityState extends State<Charity> with SingleTickerProviderStateMixin {
+  TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: 2);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        if (_tabController.index == 1) {
+          this.setState(() {
+            context.read<DonationModel>().clearHistory();
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: TabBar(
-            labelColor: mainColor,
-            indicatorColor: mainColor,
-            labelPadding: EdgeInsets.only(top: 30),
-            tabs: [
-              Tab(
-                icon: Icon(Icons.assignment),
-                text: "Projects",
-              ),
-              Tab(
-                icon: Icon(Icons.history),
-                text: "History",
-              ),
-            ],
+    return Scaffold(
+      appBar: TabBar(
+        controller: _tabController,
+        labelColor: mainColor,
+        indicatorColor: mainColor,
+        labelPadding: EdgeInsets.only(top: 30),
+        tabs: [
+          Tab(
+            icon: Icon(Icons.assignment),
+            text: "Projects",
           ),
-          body: TabBarView(
-            children: [
-              ProjectTab(),
-              HistoryTab(),
-            ],
+          Tab(
+            icon: Badge(
+                badgeColor: mainColor,
+                badgeContent: Text('${context.watch<DonationModel>().historyNum}'),
+                animationType: BadgeAnimationType.scale,
+                showBadge:  context.watch<DonationModel>().historyNum != 0,
+                child: Icon(Icons.history)),
+            text: "History",
           ),
-        ),
+        ],
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          ProjectTab(),
+          HistoryTab(),
+        ],
       ),
     );
   }
@@ -94,7 +122,7 @@ class _ProjectTabState extends State<ProjectTab> {
 }
 
 class ProjectCard extends StatefulWidget {
-  Project project;
+  final Project project;
   ProjectCard(this.project);
 
   @override
@@ -120,12 +148,17 @@ class _ProjectCardState extends State<ProjectCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.project.name,
-                  style: TextStyle(
-                      color: mainColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.project.name,
+                      style: TextStyle(
+                          color: mainColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 20,
@@ -158,7 +191,7 @@ class _ProjectCardState extends State<ProjectCard> {
 }
 
 class ProjectDetailRoute extends StatelessWidget {
-  Project project;
+  final Project project;
   ProjectDetailRoute(this.project);
 
   @override
@@ -227,13 +260,59 @@ class ProjectDetailRoute extends StatelessWidget {
                         color: mainColor,
                         textColor: mainColor,
                         highlightedBorderColor: mainColor,
-                        onPressed: () => {},
+                        onPressed: () => {
+                          showDialog<void>(
+                              context: context,
+                              builder: (context) => inputDialog(context))
+                        },
                       )
                     ],
                   ),
                 ],
               ),
             )));
+  }
+
+  Widget inputDialog(context) {
+    return AlertDialog(
+      title: Text('Donate'),
+      content: inputArea(),
+      actions: [
+        RaisedButton(
+          textColor: Colors.white,
+          color: Color(0xffF24B6C),
+          onPressed: () => Navigator.pop(context, 1),
+          child: Text('CANCEL'),
+        ),
+        RaisedButton(
+          textColor: Colors.white,
+          color: Color(0xff4BD6F2),
+          onPressed: () => donate(context),
+          child: Text('SAVE'),
+        ),
+      ],
+    );
+  }
+
+  Widget inputArea() {
+    return TextFormField(
+      keyboardType: TextInputType.number,
+      initialValue: '',
+      decoration: InputDecoration(
+        labelText: 'Budget Amount',
+        labelStyle: TextStyle(
+          color: mainColor,
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: mainColor),
+        ),
+      ),
+    );
+  }
+
+  void donate(BuildContext context) {
+    context.read<DonationModel>().increaseHistory();
+    Navigator.pop(context);
   }
 }
 
@@ -361,10 +440,12 @@ class _HistoryTabState extends State<HistoryTab> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text('No. $index'),
-                                            Text(snapshot.data[index].projectName),
+                                            Text(snapshot
+                                                .data[index].projectName),
                                             Text(snapshot.data[index].date)
                                           ]),
-                                      Text(snapshot.data[index].amount.toString())
+                                      Text(snapshot.data[index].amount
+                                          .toString())
                                     ])),
                           );
                         },

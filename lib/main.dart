@@ -1,4 +1,5 @@
 import 'package:finance/auth/Signup.dart';
+import 'package:finance/model/DonationModel.dart';
 import 'package:finance/pages/MainNavi.dart';
 import 'package:finance/utilities/constants.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthModel()),
+        ChangeNotifierProvider(create: (_) => DonationModel()),
       ],
       child: MyApp(),
     ),
