@@ -1,7 +1,9 @@
-import 'package:finance/main.dart';
+import 'package:finance/model/authModel.dart';
 import 'package:finance/utilities/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:finance/model/authModel.dart';
+import 'package:provider/provider.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -39,7 +41,7 @@ class _CharityState extends State<Charity> {
           body: TabBarView(
             children: [
               ProjectTab(),
-              Icon(Icons.directions_transit),
+              HistoryTab(),
             ],
           ),
         ),
@@ -58,8 +60,8 @@ class _ProjectTabState extends State<ProjectTab> {
 
   @override
   void initState() {
-    projects = fetchProjects();
     super.initState();
+    projects = fetchProjects();
   }
 
   @override
@@ -229,10 +231,160 @@ class ProjectDetailRoute extends StatelessWidget {
                       )
                     ],
                   ),
-
                 ],
               ),
             )));
+  }
+}
+
+class HistoryTab extends StatefulWidget {
+  @override
+  _HistoryTabState createState() => _HistoryTabState();
+}
+
+class _HistoryTabState extends State<HistoryTab> {
+  Future<List> histories;
+
+  @override
+  void initState() {
+    super.initState();
+    histories = fetchDonationHistory(context.read<AuthModel>().username);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Center(
+        child: FutureBuilder<List>(
+          future: histories,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              double total = 0;
+              for (int i = 0; i < snapshot.data.length; i++) {
+                total += snapshot.data[i].amount;
+              }
+              return Container(
+                padding: EdgeInsets.only(left: 20, right: 20, top: 10),
+                child: Column(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width - 40,
+                      child: Card(
+                        color: mainColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: (MediaQuery.of(context).size.width -
+                                          100) *
+                                      0.5,
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'THANK YOU! ${context.watch<AuthModel>().username.toUpperCase()}',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.white),
+                                        ),
+                                        Text(
+                                          'You have donated: ',
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: Colors.white),
+                                        ),
+                                      ]),
+                                ),
+                                Container(
+                                  width: (MediaQuery.of(context).size.width -
+                                          100) *
+                                      0.5,
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${snapshot.data.length} TIMES',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                        Text(
+                                          '$total AUD',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white),
+                                        ),
+                                      ]),
+                                ),
+                              ]),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Project Name',
+                          style: TextStyle(fontSize: 15),
+                        ),
+                        Text(
+                          'Amount',
+                          style: TextStyle(fontSize: 15),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Card(
+                            child: Container(
+                                padding: EdgeInsets.all(20),
+                                child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text('No. $index'),
+                                            Text(snapshot.data[index].projectName),
+                                            Text(snapshot.data[index].date)
+                                          ]),
+                                      Text(snapshot.data[index].amount.toString())
+                                    ])),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              // error handling
+            } else if (snapshot.hasError) {
+              return Text("${snapshot.error}");
+            }
+            // By default, show a loading spinner.
+            return CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(mainColor));
+          },
+        ),
+      ),
+    );
   }
 }
 
@@ -258,14 +410,13 @@ class Project {
 
   factory Project.fromJson(Map<String, dynamic> json) {
     return Project(
-      projectId: json['project_id'],
-      charityId: json['charity_id'],
-      name: json['project_name'],
-      description: json['project_description'],
-      target: json['target'],
-      current: json['current_funds'],
-      participant: json['participant']
-    );
+        projectId: json['project_id'],
+        charityId: json['charity_id'],
+        name: json['project_name'],
+        description: json['project_description'],
+        target: json['target'],
+        current: json['current_funds'],
+        participant: json['participant']);
   }
 }
 
@@ -279,6 +430,37 @@ Future<List> fetchProjects() async {
       projects.add(Project.fromJson(data[i]));
     }
     return projects;
+  } else {
+    throw Exception('Projects Not Found');
+  }
+}
+
+class DonationHistory {
+  String projectName;
+  double amount;
+  String date;
+
+  DonationHistory({this.projectName, this.amount, this.date});
+
+  factory DonationHistory.fromJson(Map<String, dynamic> json) {
+    return DonationHistory(
+      projectName: json['project_name'],
+      amount: json['amount'],
+      date: json['date'],
+    );
+  }
+}
+
+Future<List> fetchDonationHistory(String username) async {
+  List histories = new List();
+  final response = await http.get(apiBase + "donation/$username");
+
+  if (response.statusCode == 200) {
+    List data = jsonDecode(response.body);
+    for (int i = 0; i < data.length; i++) {
+      histories.add(DonationHistory.fromJson(data[i]));
+    }
+    return histories;
   } else {
     throw Exception('Projects Not Found');
   }
