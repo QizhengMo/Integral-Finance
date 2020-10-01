@@ -1,3 +1,4 @@
+import 'package:finance/main.dart';
 import 'package:finance/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -155,7 +156,7 @@ class _ProjectCardState extends State<ProjectCard> {
 }
 
 class ProjectDetailRoute extends StatelessWidget {
-  final Project project;
+  Project project;
   ProjectDetailRoute(this.project);
 
   @override
@@ -169,10 +170,14 @@ class ProjectDetailRoute extends StatelessWidget {
             padding: EdgeInsets.all(20),
             child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "${project.name}",
                     style: TextStyle(fontSize: 30),
+                  ),
+                  Divider(
+                    thickness: 1,
                   ),
                   SizedBox(
                     height: 20,
@@ -186,6 +191,45 @@ class ProjectDetailRoute extends StatelessWidget {
                     "${project.description}",
                     style: TextStyle(fontSize: 16),
                   ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  LinearPercentIndicator(
+                    lineHeight: 18,
+                    progressColor: (project.current / project.target) < 1
+                        ? mainColor
+                        : Colors.red,
+                    percent: (project.current / project.target) < 1
+                        ? (project.current / project.target)
+                        : 1,
+                    center: Text(
+                      '${project.current} / ${project.target} AUD',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Participant Number: ${project.participant}')
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      OutlineButton(
+                        child: Text('Donate Now'),
+                        color: mainColor,
+                        textColor: mainColor,
+                        highlightedBorderColor: mainColor,
+                        onPressed: () => {},
+                      )
+                    ],
+                  ),
+
                 ],
               ),
             )));
@@ -195,12 +239,13 @@ class ProjectDetailRoute extends StatelessWidget {
 // below for data fetching
 
 class Project {
-  final int projectId;
-  final int charityId;
-  final String name;
-  final String description;
-  final double target;
-  final double current;
+  int projectId;
+  int charityId;
+  String name;
+  String description;
+  double target;
+  double current;
+  int participant;
 
   Project(
       {this.projectId,
@@ -208,7 +253,8 @@ class Project {
       this.name,
       this.description,
       this.target,
-      this.current});
+      this.current,
+      this.participant});
 
   factory Project.fromJson(Map<String, dynamic> json) {
     return Project(
@@ -218,6 +264,7 @@ class Project {
       description: json['project_description'],
       target: json['target'],
       current: json['current_funds'],
+      participant: json['participant']
     );
   }
 }
@@ -235,6 +282,4 @@ Future<List> fetchProjects() async {
   } else {
     throw Exception('Projects Not Found');
   }
-
-  return [];
 }

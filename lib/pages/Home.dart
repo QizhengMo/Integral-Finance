@@ -111,7 +111,7 @@ class _BudgetCardState extends State<BudgetCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                     children: [
-                      Text(this.widget.category, style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold,color: mainColor),),
+                      Text(this.widget.category, style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: mainColor),),
                       Visibility(
                         child: Icon(
                           Icons.priority_high,
