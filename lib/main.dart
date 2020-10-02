@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:finance/auth/Login.dart';
 
 import 'package:provider/provider.dart';
-import 'model/authModel.dart';
+import 'model/BudgetModel.dart';
+import 'model/AuthModel.dart';
 
 
 void main() {
@@ -17,6 +18,8 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthModel()),
         ChangeNotifierProvider(create: (_) => DonationModel()),
+        ChangeNotifierProvider(create: (_) => BudgetModel()),
+
       ],
       child: MyApp(),
     ),

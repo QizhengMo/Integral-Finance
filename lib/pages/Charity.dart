@@ -1,4 +1,5 @@
 import 'package:badges/badges.dart';
+import 'package:finance/main.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -6,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:finance/model/DonationModel.dart';
-import 'package:finance/model/authModel.dart';
+import 'package:finance/model/AuthModel.dart';
 
 import 'package:finance/utilities/constants.dart';
 import 'package:finance/utilities/helperWidgets.dart';
@@ -312,10 +313,10 @@ class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
       decoration: InputDecoration(
         labelText: 'Donation Amount',
         labelStyle: TextStyle(
-          color: mainColor,
+          color: Colors.white,
         ),
         enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: mainColor),
+          borderSide: BorderSide(color: Colors.white),
         ),
       ),
     );
@@ -323,7 +324,8 @@ class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
 
   Widget inputDialog(context) {
     return AlertDialog(
-      title: Text('Donate'),
+      backgroundColor: mainColor,
+      title: Text('Donate', style: TextStyle(color: Colors.white),),
       content: inputArea(),
       actions: [
         RaisedButton(
@@ -334,9 +336,9 @@ class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
         ),
         RaisedButton(
           textColor: Colors.white,
-          color: mainColor,
+          color: Colors.white,
           onPressed: () => donate(context),
-          child: Text('Confirm'),
+          child: Text('Confirm', style: TextStyle(color: mainColor),),
         ),
       ],
     );

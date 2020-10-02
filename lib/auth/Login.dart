@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:finance/model/authModel.dart';
+import 'package:finance/model/AuthModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:finance/utilities/constants.dart';
