@@ -1,18 +1,15 @@
 import 'package:badges/badges.dart';
-import 'package:finance/model/DonationModel.dart';
-import 'package:finance/model/authModel.dart';
-import 'package:finance/utilities/constants.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
+import 'package:finance/model/DonationModel.dart';
 import 'package:finance/model/authModel.dart';
-import 'package:provider/provider.dart';
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:finance/utilities/constants.dart';
+import 'package:finance/utilities/helperWidgets.dart';
 
 class Charity extends StatefulWidget {
   @override
@@ -59,9 +56,10 @@ class _CharityState extends State<Charity> with SingleTickerProviderStateMixin {
           Tab(
             icon: Badge(
                 badgeColor: mainColor,
-                badgeContent: Text('${context.watch<DonationModel>().historyNum}'),
+                badgeContent:
+                    Text('${context.watch<DonationModel>().historyNum}'),
                 animationType: BadgeAnimationType.scale,
-                showBadge:  context.watch<DonationModel>().historyNum != 0,
+                showBadge: context.watch<DonationModel>().historyNum != 0,
                 child: Icon(Icons.history)),
             text: "History",
           ),
@@ -78,6 +76,11 @@ class _CharityState extends State<Charity> with SingleTickerProviderStateMixin {
   }
 }
 
+///
+///
+///
+/// PROJECT TAB
+
 class ProjectTab extends StatefulWidget {
   @override
   _ProjectTabState createState() => _ProjectTabState();
@@ -89,7 +92,7 @@ class _ProjectTabState extends State<ProjectTab> {
   @override
   void initState() {
     super.initState();
-    projects = fetchProjects();
+    projects = context.read<DonationModel>().fetchProjects();
   }
 
   @override
@@ -190,12 +193,29 @@ class _ProjectCardState extends State<ProjectCard> {
   }
 }
 
-class ProjectDetailRoute extends StatelessWidget {
+class ProjectDetailRoute extends StatefulWidget {
   final Project project;
+
   ProjectDetailRoute(this.project);
 
   @override
-  Widget build(BuildContext context) {
+  _ProjectDetailRouteState createState() => _ProjectDetailRouteState();
+}
+
+class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
+  final donatePopupController = TextEditingController();
+  double current;
+  int participant;
+
+  @override
+  void initState() {
+    super.initState();
+    current = widget.project.current;
+    participant = widget.project.participant;
+  }
+
+  @override
+  Widget build(BuildContext detailPageContext) {
     return Scaffold(
         appBar: AppBar(
           title: Text("Project Detail"),
@@ -208,7 +228,7 @@ class ProjectDetailRoute extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "${project.name}",
+                    "${widget.project.name}",
                     style: TextStyle(fontSize: 30),
                   ),
                   Divider(
@@ -223,22 +243,25 @@ class ProjectDetailRoute extends StatelessWidget {
                     height: 30,
                   ),
                   Text(
-                    "${project.description}",
+                    "${widget.project.description}",
                     style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(
                     height: 30,
                   ),
                   LinearPercentIndicator(
+                    animation: true,
+                    animateFromLastPercent: true,
+                    animationDuration: 2000,
                     lineHeight: 18,
-                    progressColor: (project.current / project.target) < 1
+                    progressColor: (current / widget.project.target) < 1
                         ? mainColor
                         : Colors.red,
-                    percent: (project.current / project.target) < 1
-                        ? (project.current / project.target)
+                    percent: (current / widget.project.target) < 1
+                        ? (current / widget.project.target)
                         : 1,
                     center: Text(
-                      '${project.current} / ${project.target} AUD',
+                      '$current / ${widget.project.target} AUD',
                       style: TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold),
                     ),
@@ -249,21 +272,30 @@ class ProjectDetailRoute extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Participant Number: ${project.participant}')
+                      Text('Participant Number: $participant')
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      OutlineButton(
-                        child: Text('Donate Now'),
-                        color: mainColor,
-                        textColor: mainColor,
-                        highlightedBorderColor: mainColor,
-                        onPressed: () => {
-                          showDialog<void>(
-                              context: context,
-                              builder: (context) => inputDialog(context))
+                      Builder(
+                        builder: (BuildContext BtnContext) {
+                          return OutlineButton(
+                            child: Text('Donate Now'),
+                            color: mainColor,
+                            textColor: mainColor,
+                            highlightedBorderColor: mainColor,
+                            onPressed: () async {
+                              String result = await showDialog<String>(
+                                  context: BtnContext,
+                                  builder: (context) => inputDialog(context));
+
+                              print(result);
+                              if (result != null) {
+                                mySnack(BtnContext, result);
+                              }
+                            },
+                          );
                         },
                       )
                     ],
@@ -273,33 +305,12 @@ class ProjectDetailRoute extends StatelessWidget {
             )));
   }
 
-  Widget inputDialog(context) {
-    return AlertDialog(
-      title: Text('Donate'),
-      content: inputArea(),
-      actions: [
-        RaisedButton(
-          textColor: Colors.white,
-          color: Color(0xffF24B6C),
-          onPressed: () => Navigator.pop(context, 1),
-          child: Text('CANCEL'),
-        ),
-        RaisedButton(
-          textColor: Colors.white,
-          color: Color(0xff4BD6F2),
-          onPressed: () => donate(context),
-          child: Text('SAVE'),
-        ),
-      ],
-    );
-  }
-
   Widget inputArea() {
     return TextFormField(
+      controller: donatePopupController,
       keyboardType: TextInputType.number,
-      initialValue: '',
       decoration: InputDecoration(
-        labelText: 'Budget Amount',
+        labelText: 'Donation Amount',
         labelStyle: TextStyle(
           color: mainColor,
         ),
@@ -310,11 +321,53 @@ class ProjectDetailRoute extends StatelessWidget {
     );
   }
 
-  void donate(BuildContext context) {
-    context.read<DonationModel>().increaseHistory();
-    Navigator.pop(context);
+  Widget inputDialog(context) {
+    return AlertDialog(
+      title: Text('Donate'),
+      content: inputArea(),
+      actions: [
+        RaisedButton(
+          textColor: Colors.white,
+          color: Color(0xffF24B6C),
+          onPressed: () => Navigator.pop(context),
+          child: Text('CANCEL'),
+        ),
+        RaisedButton(
+          textColor: Colors.white,
+          color: mainColor,
+          onPressed: () => donate(context),
+          child: Text('Confirm'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> donate(BuildContext context) async {
+    double amount;
+    try {
+      amount = double.parse(donatePopupController.text);
+    } catch (Exception) {
+      Navigator.pop(context, "Invalid Amount");
+      return;
+    }
+
+    String result = await context.read<DonationModel>()
+        .donate(context.read<AuthModel>().username, widget.project.name, amount, widget.project);
+
+    if (result == "Donation Successful") {
+      setState(() {
+        participant += 1;
+        current += amount;
+      });
+    }
+
+    Navigator.pop(context,result);
   }
 }
+
+///
+///
+/// HISTORY TAB
 
 class HistoryTab extends StatefulWidget {
   @override
@@ -327,7 +380,9 @@ class _HistoryTabState extends State<HistoryTab> {
   @override
   void initState() {
     super.initState();
-    histories = fetchDonationHistory(context.read<AuthModel>().username);
+    histories = context
+        .read<DonationModel>()
+        .fetchDonationHistory(context.read<AuthModel>().username);
   }
 
   @override
@@ -466,83 +521,5 @@ class _HistoryTabState extends State<HistoryTab> {
         ),
       ),
     );
-  }
-}
-
-// below for data fetching
-
-class Project {
-  int projectId;
-  int charityId;
-  String name;
-  String description;
-  double target;
-  double current;
-  int participant;
-
-  Project(
-      {this.projectId,
-      this.charityId,
-      this.name,
-      this.description,
-      this.target,
-      this.current,
-      this.participant});
-
-  factory Project.fromJson(Map<String, dynamic> json) {
-    return Project(
-        projectId: json['project_id'],
-        charityId: json['charity_id'],
-        name: json['project_name'],
-        description: json['project_description'],
-        target: json['target'],
-        current: json['current_funds'],
-        participant: json['participant']);
-  }
-}
-
-Future<List> fetchProjects() async {
-  List projects = new List();
-  final response = await http.get(apiBase + "charity/project");
-
-  if (response.statusCode == 200) {
-    List data = jsonDecode(response.body);
-    for (int i = 0; i < data.length; i++) {
-      projects.add(Project.fromJson(data[i]));
-    }
-    return projects;
-  } else {
-    throw Exception('Projects Not Found');
-  }
-}
-
-class DonationHistory {
-  String projectName;
-  double amount;
-  String date;
-
-  DonationHistory({this.projectName, this.amount, this.date});
-
-  factory DonationHistory.fromJson(Map<String, dynamic> json) {
-    return DonationHistory(
-      projectName: json['project_name'],
-      amount: json['amount'],
-      date: json['date'],
-    );
-  }
-}
-
-Future<List> fetchDonationHistory(String username) async {
-  List histories = new List();
-  final response = await http.get(apiBase + "donation/$username");
-
-  if (response.statusCode == 200) {
-    List data = jsonDecode(response.body);
-    for (int i = 0; i < data.length; i++) {
-      histories.add(DonationHistory.fromJson(data[i]));
-    }
-    return histories;
-  } else {
-    throw Exception('Projects Not Found');
   }
 }
