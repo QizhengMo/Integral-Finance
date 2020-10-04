@@ -16,7 +16,7 @@ final titleTextStyle = TextStyle(
   fontFamily: 'OpenSans',
 );
 
-final inputBoxStyle = BoxDecoration(
+final majorInputBoxStyle = BoxDecoration(
   color: Colors.white,
   borderRadius: BorderRadius.circular(10.0),
   boxShadow: [

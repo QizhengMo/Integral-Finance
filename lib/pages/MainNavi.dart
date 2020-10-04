@@ -162,11 +162,11 @@ class _MainNavigationState extends State<MainNavigation> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(
-                          Icons.settings,
+                          Icons.account_circle,
                           color: currentTab == 3 ? mainColor : Colors.grey,
                         ),
                         Text(
-                          'Settings',
+                          'Profile',
                           style: TextStyle(
                             color: currentTab == 3 ? mainColor : Colors.grey,
                           ),

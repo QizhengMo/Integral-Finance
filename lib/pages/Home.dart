@@ -16,6 +16,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final categoryInput = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -104,12 +106,14 @@ class _HomeState extends State<Home> {
   /// Add category popup dialog
   ///
   Widget buildCategoryInputArea() {
+
     return TextFormField(
+      controller: categoryInput,
       keyboardType: TextInputType.number,
       cursorColor: Colors.white,
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        labelText: 'Budget Amount',
+        labelText: 'Category Name',
         labelStyle: TextStyle(
           color: Colors.white,
         ),
@@ -117,7 +121,6 @@ class _HomeState extends State<Home> {
           borderSide: BorderSide(color: Colors.white),
         ),
       ),
-      onChanged: (text) => {},
     );
   }
 
@@ -136,7 +139,7 @@ class _HomeState extends State<Home> {
         RaisedButton(
           textColor: mainColor,
           color: Colors.white,
-          onPressed: () => {},
+          onPressed: () => {updateBudget(context)},
           child: Text('SAVE'),
         ),
       ],
@@ -145,12 +148,28 @@ class _HomeState extends State<Home> {
 
   Future<void> updateBudget(BuildContext context) async {
 
+    if (categoryInput.text.length == 0) {
+      Navigator.pop(context);
+      mySnack(context, "Please enter category name!");
+      return;
+    }
 
+    bool result = await context.read<BudgetModel>().addCategory(
+                          context.read<AuthModel>().username
+                          , categoryInput.text);
+
+    if (result) {
+      Navigator.pop(context);
+      mySnack(context, "New Category Added!");
+    } else {
+      Navigator.pop(context);
+      mySnack(context, "Network/Server Failure!");
+    }
   }
 }
 
 class BudgetCard extends StatefulWidget {
-  var category;
+  final String category;
   double total;
   double spent;
 

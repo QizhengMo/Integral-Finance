@@ -6,9 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:finance/utilities/constants.dart';
 import 'package:finance/utilities/helperWidgets.dart';
 
-
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class Login extends StatefulWidget {
   @override
@@ -20,6 +21,31 @@ class _LoginState extends State<Login> {
   bool _canInput = true;
   var _username = '';
   var _password = '';
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    loadRememberMe();
+  }
+
+  void loadRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool('remember')) {
+      setState(() {
+        _username = prefs.getString('username') ?? '';
+        _password = prefs.getString('password') ?? '';
+        usernameController.text = _username;
+        passwordController.text = _password;
+        _rememberMe = true;
+      });
+    } else {
+      _rememberMe = false;
+    }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,26 +74,26 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                Container(
-                  height: double.infinity,
-                  margin: EdgeInsets.only(
-                      top: 0.3 * MediaQuery.of(context).size.height),
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SizedBox(height: 30.0),
-                      _buildUsernameFiled(),
-                      SizedBox(height: 10.0),
-                      _buildPasswordField(),
-                      SizedBox(height: 10),
-                      _buildRememberMeCheckbox(),
-                      SizedBox(height: 70),
-                      _buildLoginBtn(context),
-                      _buildSignupBtn(),
-                    ],
-                  ),
-                ),
+                  Container(
+                    height: double.infinity,
+                    margin: EdgeInsets.only(
+                        top: 0.3 * MediaQuery.of(context).size.height),
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        SizedBox(height: 30.0),
+                        _buildUsernameFiled(),
+                        SizedBox(height: 10.0),
+                        _buildPasswordField(),
+                        SizedBox(height: 10),
+                        _buildRememberMeCheckbox(),
+                        SizedBox(height: 70),
+                        _buildLoginBtn(context),
+                        _buildSignupBtn(context),
+                      ],
+                    ),
+                  )
               ],
             ),
           ),
@@ -83,11 +109,12 @@ class _LoginState extends State<Login> {
         SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
-          decoration: inputBoxStyle,
+          decoration: majorInputBoxStyle,
           height: 60.0,
           child: TextFormField(
             enabled: _canInput,
             keyboardType: TextInputType.name,
+            controller: usernameController,
             style: TextStyle(
               color: Colors.black,
               fontFamily: 'OpenSans',
@@ -116,10 +143,11 @@ class _LoginState extends State<Login> {
         SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
-          decoration: inputBoxStyle,
+          decoration: majorInputBoxStyle,
           height: 60.0,
           child: TextFormField(
             obscureText: true,
+            controller: passwordController,
             style: TextStyle(
               color: Colors.black,
               fontFamily: 'OpenSans',
@@ -198,13 +226,13 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget _buildSignupBtn() {
+  Widget _buildSignupBtn(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 5.0),
       width: double.infinity,
       child: RaisedButton(
         elevation: 5.0,
-        onPressed: signupRoute,
+        onPressed: () => signupRoute(context),
         padding: EdgeInsets.all(15.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
@@ -237,31 +265,34 @@ class _LoginState extends State<Login> {
     );
 
     if (response.statusCode == 200) {
-      if (jsonDecode(response.body)['success']) {
-        context.read<AuthModel>().login(_username);
-        Navigator.pushNamedAndRemoveUntil(
-            context, '/main', (Route<dynamic> route) => false);
+      context.read<AuthModel>().login(_username);
+      Navigator.pushNamedAndRemoveUntil(
+          context, '/main', (Route<dynamic> route) => false);
+
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        prefs.setString('username', _username);
+        prefs.setString('password', _password);
+        prefs.setBool('remember', true);
+      } else {
+        prefs.remove('username');
+        prefs.remove('password');
+        prefs.setBool('remember', false);
       }
+
     } else {
       _canInput = true;
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text(
-          'Incorrect Password/Username',
-          style: TextStyle(color: mainColor),
-        ),
-        backgroundColor: Colors.white,
-        action: SnackBarAction(
-            label: "Dismiss",
-            onPressed: () {
-              Scaffold.of(context).hideCurrentSnackBar();
-            },
-            textColor: Colors.red),
-      ));
+      mySnack(context, 'Incorrect Password/Username');
     }
   }
 
-  void signupRoute() async {
-    Navigator.pushNamed(context, '/signup');
+  void signupRoute(BuildContext context) async {
+    final result = await Navigator.pushNamed(context, '/signup');
+
+    if (result != null && result.runtimeType == String) {
+      mySnack(context, result);
+    }
   }
 }
 

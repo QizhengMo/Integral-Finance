@@ -96,6 +96,29 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
     }
   }
 
+  Future<bool> addCategory(String username, String categoryName)
+  async {
+
+    final response = await
+    http.post(
+      apiBase + "category/",
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "username" : username,
+        'category_name': categoryName,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      fetchPeriods(username);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }
 
 class Budget {
