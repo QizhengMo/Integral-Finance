@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:finance/utilities/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
@@ -8,12 +10,71 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
   List _periods;
   List get periods => _periods;
 
+  List _budgets;
+  List get budgets => _budgets;
+
+  double _totalLeft = 0;
+  double get totalLeft => _totalLeft;
+
+  int _currentIndex = 0;
+  int get length => _currentIndex;
+
   Future<void> fetchPeriods(String username) async {
     _periods = await fetchBudgets(username);
+    _currentIndex = _periods.length - 1;
+    _budgets = _periods[_currentIndex];
+    calculateTotal();
     notifyListeners();
   }
 
-  Future<bool> updateBudget(String username) async {
+  void calculateTotal() {
+    if (_periods == null) {
+      return;
+    }
+
+    _totalLeft = 0;
+    for (Budget b in _budgets) {
+      _totalLeft += max((b.total - b.spent),0);
+    }
+  }
+
+  List getCurrentCategories() {
+    List<String> categories = new List();
+    List currentBudgets = _periods[_periods.length - 1];
+    for (Budget budget in currentBudgets) {
+      categories.add(budget.categoryName);
+    }
+    print(categories.toString());
+    return categories;
+  }
+
+  Future<bool> updateBudget(String username, String categoryName, double amount)
+  async {
+
+    final response = await
+    http.put(
+      apiBase + "budget/",
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "username" : username,
+        'category_name': categoryName,
+        'total' : amount.toString()
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      fetchPeriods(username);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> addExpense(String username, String categoryName, double spent)
+  async {
+
     final response = await
     http.patch(
       apiBase + "budget/",
@@ -22,10 +83,17 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
       },
       body: jsonEncode(<String, String>{
         "username" : username,
-        'category_name': projectName,
-        'amount' : amount.toString()
+        'category_name': categoryName,
+        'spent' : spent.toString()
       }),
     );
+
+    if (response.statusCode == 200) {
+      fetchPeriods(username);
+      return true;
+    } else {
+      return false;
+    }
   }
 
 }

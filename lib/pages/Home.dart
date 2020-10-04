@@ -16,8 +16,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  double total = 0;
-
   @override
   void initState() {
     super.initState();
@@ -30,9 +28,9 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: CustomScrollView(
-      slivers: <Widget>[
-        buildHomeAppbar(),
-        SliverList(delegate: SliverChildListDelegate(buildCards())),
+          slivers: <Widget>[
+            buildHomeAppbar(),
+            SliverList(delegate: SliverChildListDelegate(buildCards())),
       ],
     ));
   }
@@ -55,13 +53,14 @@ class _HomeState extends State<Home> {
       List<Widget> cards = new List();
       for (Budget budget in currentPeriod) {
         cards.add(BudgetCard(budget.categoryName, budget.total, budget.spent));
-        total += max((budget.total - budget.spent), 0);
       }
       return cards;
     }
   }
 
   Widget buildHomeAppbar() {
+    final AlertDialog dialog = buildCategoryInputDialog(context);
+
     return SliverAppBar(
       pinned: true,
       floating: true,
@@ -76,7 +75,9 @@ class _HomeState extends State<Home> {
               IconButton(
                 icon: Icon(Icons.playlist_add, color: Colors.white),
                 iconSize: 30,
-                onPressed: () => {},
+                onPressed: () => {
+                    showDialog<void>(context: context, builder: (context) => dialog)
+                  },
               )
             ]),
         titlePadding: EdgeInsets.only(left: 20),
@@ -90,13 +91,61 @@ class _HomeState extends State<Home> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 30)),
-              Text('\$ $total',
+              Text('\$ ${context.watch<BudgetModel>().totalLeft}',
                   style: TextStyle(color: Colors.white, fontSize: 30))
             ],
           ),
         ),
       ),
     );
+  }
+
+  ///
+  /// Add category popup dialog
+  ///
+  Widget buildCategoryInputArea() {
+    return TextFormField(
+      keyboardType: TextInputType.number,
+      cursorColor: Colors.white,
+      style: TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: 'Budget Amount',
+        labelStyle: TextStyle(
+          color: Colors.white,
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.white),
+        ),
+      ),
+      onChanged: (text) => {},
+    );
+  }
+
+  Widget buildCategoryInputDialog(context) {
+    return AlertDialog(
+      backgroundColor: mainColor,
+      title: Text("New Category", style: TextStyle(color: Colors.white),),
+      content: buildCategoryInputArea(),
+      actions: [
+        RaisedButton(
+          textColor: Colors.white,
+          color: Color(0xffF24B6C),
+          onPressed: () => Navigator.pop(context),
+          child: Text('CANCEL'),
+        ),
+        RaisedButton(
+          textColor: mainColor,
+          color: Colors.white,
+          onPressed: () => {},
+          child: Text('SAVE'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> updateBudget(BuildContext context) async {
+
+
   }
 }
 
@@ -120,7 +169,7 @@ class _BudgetCardState extends State<BudgetCard> {
     double vw = MediaQuery.of(context).size.width;
     double vh = MediaQuery.of(context).size.height;
 
-    final AlertDialog dialog = inputDialog(context);
+    final AlertDialog dialog = buildBudgetCardInputDialog(context);
 
     return Container(
       height: 120,
@@ -160,6 +209,10 @@ class _BudgetCardState extends State<BudgetCard> {
                 LinearPercentIndicator(
                   width: vw - 50,
                   lineHeight: 18,
+                  animationDuration: 2000,
+                  restartAnimation: false,
+                  animation: true,
+                  animateFromLastPercent: true,
                   progressColor: (widget.spent / widget.total) < 1
                       ? mainColor
                       : Colors.red,
@@ -180,9 +233,14 @@ class _BudgetCardState extends State<BudgetCard> {
     );
   }
 
-  Widget inputArea() {
+  ///
+  /// Budget Cards popup dialog
+  ///
+  Widget buildBudgetCardInputArea() {
     return TextFormField(
       keyboardType: TextInputType.number,
+      cursorColor: Colors.white,
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: 'Budget Amount',
         labelStyle: TextStyle(
@@ -196,11 +254,11 @@ class _BudgetCardState extends State<BudgetCard> {
     );
   }
 
-  Widget inputDialog(context) {
+  Widget buildBudgetCardInputDialog(context) {
     return AlertDialog(
       backgroundColor: mainColor,
       title: Text(this.widget.category, style: TextStyle(color: Colors.white),),
-      content: inputArea(),
+      content: buildBudgetCardInputArea(),
       actions: [
         RaisedButton(
           textColor: Colors.white,
@@ -218,11 +276,23 @@ class _BudgetCardState extends State<BudgetCard> {
     );
   }
 
-  void updateBudget(BuildContext context) {
-      context.read<BudgetModel>().
+  Future<void> updateBudget(BuildContext context) async {
 
+    if (newAmount == 0) {
       Navigator.pop(context);
-      mySnack(context, 'message');
+      mySnack(context, 'Invalid Amount!');
+      return;
+    }
+    bool result = await context.read<BudgetModel>().updateBudget(
+        context.read<AuthModel>().username, widget.category, newAmount);
+
+    Navigator.pop(context);
+
+    if (result) {
+      mySnack(context, 'Update Successfully!');
+    } else {
+      mySnack(context, 'Network Failure!');
+    }
   }
 
 }
