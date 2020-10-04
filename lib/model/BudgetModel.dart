@@ -17,7 +17,6 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
   double get totalLeft => _totalLeft;
 
   int _currentIndex = 0;
-  int get length => _currentIndex;
 
   Future<void> fetchPeriods(String username) async {
     _periods = await fetchBudgets(username);
@@ -25,6 +24,35 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
     _budgets = _periods[_currentIndex];
     calculateTotal();
     notifyListeners();
+  }
+
+
+  List getCurrentCategories() {
+    List<String> categories = new List();
+    List currentBudgets = _periods[_periods.length - 1];
+    for (Budget budget in currentBudgets) {
+      categories.add(budget.categoryName);
+    }
+    print(categories.toString());
+    return categories;
+  }
+
+  List<String> getPeriodDates() {
+    List<String> result = new List();
+    for (List item in _periods) {
+      result.add(item[0].startDate);
+    }
+    return result;
+  }
+
+  void setPeriod(int index) {
+    _currentIndex = index;
+    _budgets = periods[_currentIndex];
+    notifyListeners();
+  }
+
+  bool isCurrentPeriod() {
+    return _currentIndex == _periods.length - 1;
   }
 
   void calculateTotal() {
@@ -36,16 +64,6 @@ class BudgetModel with ChangeNotifier, DiagnosticableTreeMixin {
     for (Budget b in _budgets) {
       _totalLeft += max((b.total - b.spent),0);
     }
-  }
-
-  List getCurrentCategories() {
-    List<String> categories = new List();
-    List currentBudgets = _periods[_periods.length - 1];
-    for (Budget budget in currentBudgets) {
-      categories.add(budget.categoryName);
-    }
-    print(categories.toString());
-    return categories;
   }
 
   Future<bool> updateBudget(String username, String categoryName, double amount)
@@ -127,12 +145,16 @@ class Budget {
   String categoryName;
   double spent;
   double total;
+  String startDate;
+  String endDate;
 
   Budget(
       {this.username,
         this.categoryName,
         this.spent,
-        this.total
+        this.total,
+        this.endDate,
+        this.startDate
       });
 
   factory Budget.fromJson(Map<String, dynamic> json) {
@@ -141,6 +163,8 @@ class Budget {
         categoryName: json['category_name'],
         spent: json['spent'],
         total: json['total'],
+        endDate: json['end_date'],
+        startDate: json['start_date']
 );
   }
 }
@@ -155,6 +179,7 @@ Future<List> fetchBudgets(String username) async {
       List projects = new List();
       for (int j = 0; j < data[i].length; j++) {
         projects.add(Budget.fromJson(data[i][j]));
+        print(data[i][j]);
       }
       periods.add(projects);
     }

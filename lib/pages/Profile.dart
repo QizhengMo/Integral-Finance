@@ -12,9 +12,9 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
      return Scaffold(
       appBar: AppBar(
-        title: Text('Profile')
+        title: Text('${context.watch<AuthModel>().username}'.toUpperCase())
         ),
-       body: Center(child: Text('${context.watch<AuthModel>().username}'),),
+       body: null
     );
   }
 }

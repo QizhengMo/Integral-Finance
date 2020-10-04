@@ -5,7 +5,7 @@ import 'package:finance/utilities/helperWidgets.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'Charity.dart';
-import 'settings.dart';
+import 'Profile.dart';
 import 'Investment.dart';
 import 'Home.dart';
 
