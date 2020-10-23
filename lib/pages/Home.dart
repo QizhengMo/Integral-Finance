@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:finance/model/AuthModel.dart';
 import 'package:finance/model/BudgetModel.dart';
+import 'package:finance/model/ProfileModel.dart';
 import 'package:finance/utilities/helperWidgets.dart';
 import 'package:provider/provider.dart';
 
@@ -32,11 +33,11 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
         body: CustomScrollView(
-      slivers: <Widget>[
-        buildHomeAppbar(budgets),
-        SliverList(delegate: SliverChildListDelegate(buildCards(budgets))),
-      ],
-    ));
+          slivers: <Widget>[
+            buildHomeAppbar(budgets),
+            SliverList(delegate: SliverChildListDelegate(buildCards(budgets))),
+          ],
+        ));
   }
 
   List<Widget> buildCards(List budgets) {
@@ -55,6 +56,7 @@ class _HomeState extends State<Home> {
       for (Budget budget in budgets) {
         cards.add(BudgetCard(budget.categoryName, budget.total, budget.spent));
       }
+      cards.add(SizedBox(height: 100,));
       return cards;
     }
   }
@@ -69,18 +71,18 @@ class _HomeState extends State<Home> {
       flexibleSpace: FlexibleSpaceBar(
         title:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(
-            'Categories',
-            style: TextStyle(fontSize: 20),
-          ),
-          IconButton(
-            icon: Icon(Icons.playlist_add, color: Colors.white),
-            iconSize: 30,
-            onPressed: () => {
-              showDialog<void>(context: context, builder: (context) => dialog)
-            },
-          )
-        ]),
+              Text(
+                'Categories',
+                style: TextStyle(fontSize: 20),
+              ),
+              IconButton(
+                icon: Icon(Icons.playlist_add, color: Colors.white),
+                iconSize: 30,
+                onPressed: () => {
+                  showDialog<void>(context: context, builder: (context) => dialog)
+                },
+              )
+            ]),
         titlePadding: EdgeInsets.only(left: 20),
         background: Container(
           padding: EdgeInsets.only(top: 40, left: 20, right: 20),
@@ -101,17 +103,16 @@ class _HomeState extends State<Home> {
               // Period Selection BTN
               Container(
                 width: MediaQuery.of(context).size.width - 40,
-                decoration:
-                    BoxDecoration(
-                        color: Color(0xff3E57CB),
-                        borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(
+                    color: Color(0xff3E57CB),
+                    borderRadius: BorderRadius.circular(20)),
                 padding: EdgeInsets.all(8),
                 child: PopupMenuButton(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Period: ${budgets[0].startDate}",
+                        "Period: ${budgets != null ? budgets[0].startDate : ""}",
                         style: TextStyle(color: Colors.white),
                       ),
                       Icon(Icons.history, color: Colors.white),
@@ -177,14 +178,14 @@ class _HomeState extends State<Home> {
         RaisedButton(
           textColor: mainColor,
           color: Colors.white,
-          onPressed: () => {updateBudget(context)},
+          onPressed: () => {addCategory(context)},
           child: Text('SAVE'),
         ),
       ],
     );
   }
 
-  Future<void> updateBudget(BuildContext context) async {
+  Future<void> addCategory(BuildContext context) async {
     if (categoryInput.text.length == 0) {
       Navigator.pop(context);
       mySnack(context, "Please enter category name!");
@@ -200,8 +201,15 @@ class _HomeState extends State<Home> {
       mySnack(context, "New Category Added!");
     } else {
       Navigator.pop(context);
-      mySnack(context, "Network/Server Failure!");
+      mySnack(context, "Error!");
     }
+
+    context.read<ProfileModel>().fetchBadge(context.read<AuthModel>().username)
+        .then((value) => {
+      if (value) {
+        context.read<ProfileModel>().showBadgeDialog(context)
+      }
+    });
   }
 }
 
@@ -349,10 +357,5 @@ class _BudgetCardState extends State<BudgetCard> {
 
     Navigator.pop(context);
 
-    if (result) {
-      mySnack(context, 'Update Successfully!');
-    } else {
-      mySnack(context, 'Network Failure!');
-    }
   }
 }

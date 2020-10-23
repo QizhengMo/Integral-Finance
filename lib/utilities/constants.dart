@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 
 
 final apiBase = "http://104.156.233.57:5000/";
+
+final stockToken = "XG90H731X6X7W79L";
+
 final mainColor = Color(0xff4864E6);
 final backgroundColor = Color(0XffF2F4FF);
+final deepMain = Color(0xff435FDB);
 
 final myTextStyle = TextStyle(
   color: Colors.white54,

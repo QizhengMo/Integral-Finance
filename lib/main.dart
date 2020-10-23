@@ -1,5 +1,7 @@
 import 'package:finance/auth/Signup.dart';
 import 'package:finance/model/DonationModel.dart';
+import 'package:finance/model/InvestModel.dart';
+import 'package:finance/model/ProfileModel.dart';
 import 'package:finance/pages/MainNavi.dart';
 import 'package:finance/utilities/constants.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthModel()),
         ChangeNotifierProvider(create: (_) => DonationModel()),
         ChangeNotifierProvider(create: (_) => BudgetModel()),
-
+        ChangeNotifierProvider(create: (_) => InvestModel()),
+        ChangeNotifierProvider(create: (_) => ProfileModel()),
       ],
       child: MyApp(),
     ),

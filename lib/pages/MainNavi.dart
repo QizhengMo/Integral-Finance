@@ -1,5 +1,6 @@
 import 'package:finance/main.dart';
 import 'package:finance/model/AuthModel.dart';
+import 'package:finance/model/ProfileModel.dart';
 import 'package:finance/utilities/constants.dart';
 import 'package:finance/utilities/helperWidgets.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,158 +24,172 @@ class _MainNavigationState extends State<MainNavigation> {
   double newAmount = 0;
   String selectedCategory = "";
 
-  int currentTab = 0; // to keep track of active tab index
+  int currentTab = 0;
   final List<Widget> screens = [
     Home(),
     Investment(),
     Charity(),
     Profile(),
-  ]; // to store nested tabs
+  ];
+
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = Home(); // Our first view in viewport
+
+  // set default Screen
+  Widget currentScreen = Home();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => checkBadges(context));
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+      extendBody: true,
       body: PageStorage(
         child: currentScreen,
         bucket: bucket,
       ),
-      floatingActionButton: Builder(
-        builder: (context) {
-          return (
-              FloatingActionButton(
-                child: Icon(Icons.add),
-                onPressed: () => {
-                  setState(() {
-                    currentScreen = Home();
-                    currentTab = 0;
-                  }),
-                  popAddDialog(context)
-                },
-                backgroundColor: Colors.white,
-                foregroundColor: mainColor,
-              )
-          );
-        }
-      ),
+      floatingActionButton:
+        FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: () => {
+            setState(() {
+              currentScreen = screens[0];
+              currentTab = 0;
+            }),
+            popAddDialog(context)
+          },
+          backgroundColor: Colors.white,
+          foregroundColor: mainColor,
+        ),
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
-        notchMargin: 5,
+        notchMargin: 7,
         child: Container(
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  MaterialButton(
-                    minWidth: 40,
-                    onPressed: () {
-                      setState(() {
-                        currentScreen = Home();
-                        currentTab = 0;
-                      });
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.home,
-                          color: currentTab == 0 ? mainColor : Colors.grey,
-                        ),
-                        Text(
-                          'Home',
-                          style: TextStyle(
+              Expanded(
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    MaterialButton(
+                      minWidth: 40,
+                      onPressed: () {
+                        setState(() {
+                          currentScreen = screens[0];
+                          currentTab = 0;
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.home,
                             color: currentTab == 0 ? mainColor : Colors.grey,
                           ),
-                        ),
-                      ],
+                          Text(
+                            'Home',
+                            style: TextStyle(
+                              color: currentTab == 0 ? mainColor : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  MaterialButton(
-                    minWidth: 40,
-                    onPressed: () {
-                      setState(() {
-                        currentScreen = Investment();
-                        currentTab = 1;
-                      });
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.attach_money,
-                          color: currentTab == 1 ? mainColor : Colors.grey,
-                        ),
-                        Text(
-                          'Investment',
-                          style: TextStyle(
+                    MaterialButton(
+                      minWidth: 40,
+                      onPressed: () {
+                        setState(() {
+                          currentScreen = screens[1];
+                          currentTab = 1;
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.attach_money,
                             color: currentTab == 1 ? mainColor : Colors.grey,
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
+                          Text(
+                            'Investment',
+                            style: TextStyle(
+                              color: currentTab == 1 ? mainColor : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
-
-              // Right Tab bar icons
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  MaterialButton(
-                    minWidth: 40,
-                    onPressed: () {
-                      setState(() {
-                        currentScreen = Charity();
-                        currentTab = 2;
-                      });
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.credit_card,
-                          color: currentTab == 2 ? mainColor : Colors.grey,
-                        ),
-                        Text(
-                          'Charity',
-                          style: TextStyle(
+              Expanded(
+                flex: 5,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    MaterialButton(
+                      minWidth: 40,
+                      onPressed: () {
+                        setState(() {
+                          currentScreen = screens[2];
+                          currentTab = 2;
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.credit_card,
                             color: currentTab == 2 ? mainColor : Colors.grey,
                           ),
-                        ),
-                      ],
+                          Text(
+                            'Charity',
+                            style: TextStyle(
+                              color: currentTab == 2 ? mainColor : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  MaterialButton(
-                    minWidth: 40,
-                    onPressed: () {
-                      setState(() {
-                        currentScreen = Profile();
-                        currentTab = 3;
-                      });
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.account_circle,
-                          color: currentTab == 3 ? mainColor : Colors.grey,
-                        ),
-                        Text(
-                          'Profile',
-                          style: TextStyle(
+                    MaterialButton(
+                      minWidth: 40,
+                      onPressed: () {
+                        setState(() {
+                          currentScreen = screens[3];
+                          currentTab = 3;
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(
+                            Icons.account_circle,
                             color: currentTab == 3 ? mainColor : Colors.grey,
                           ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
+                          Text(
+                            'Profile',
+                            style: TextStyle(
+                              color: currentTab == 3 ? mainColor : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               )
             ],
           ),
@@ -272,6 +287,21 @@ class _MainNavigationState extends State<MainNavigation> {
       mySnack(context, "Expense Recorded!");
     } else {
       mySnack(context, "Network/Server Failure!");
+    }
+  }
+
+  // Below are badge checking on first init
+
+  void checkBadges(BuildContext context) {
+    if (context.read<ProfileModel>().isFirstTime) {
+      print("Login First init");
+      context.read<ProfileModel>().isFirstTime = false;
+      context.read<ProfileModel>().fetchBadge(context.read<AuthModel>().username)
+          .then((value) => {
+            if (value) {
+              context.read<ProfileModel>().showBadgeDialog(context)
+            }
+      });
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:finance/model/AuthModel.dart';
+import 'package:finance/model/ProfileModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:finance/utilities/constants.dart';
@@ -267,8 +268,9 @@ class _LoginState extends State<Login> {
     if (response.statusCode == 200) {
       context.read<AuthModel>().login(_username);
       Navigator.pushNamedAndRemoveUntil(
-          context, '/main', (Route<dynamic> route) => false);
+          context, '/main',(Route<dynamic> route) => false);
 
+      context.read<ProfileModel>().isFirstTime = true;
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (_rememberMe) {

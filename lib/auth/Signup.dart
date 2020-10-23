@@ -154,7 +154,7 @@ class _SignupState extends State<Signup> {
               color: mainColor,
               fontFamily: 'OpenSans',
             ),
-            hint: Text("Select Frequency", style: TextStyle(fontSize: 16)),
+            hint: Text("Select Budget Frequency", style: TextStyle(fontSize: 16)),
             decoration: InputDecoration(
               border: InputBorder.none,
               prefixIcon: Icon(

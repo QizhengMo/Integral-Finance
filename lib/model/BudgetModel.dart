@@ -179,7 +179,6 @@ Future<List> fetchBudgets(String username) async {
       List projects = new List();
       for (int j = 0; j < data[i].length; j++) {
         projects.add(Budget.fromJson(data[i][j]));
-        print(data[i][j]);
       }
       periods.add(projects);
     }

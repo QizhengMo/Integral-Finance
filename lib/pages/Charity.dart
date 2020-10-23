@@ -1,5 +1,6 @@
 import 'package:badges/badges.dart';
 import 'package:finance/main.dart';
+import 'package:finance/model/ProfileModel.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -294,6 +295,12 @@ class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
                               print(result);
                               if (result != null) {
                                 mySnack(BtnContext, result);
+                                context.read<ProfileModel>().fetchBadge(context.read<AuthModel>().username)
+                                    .then((value) => {
+                                  if (value) {
+                                    context.read<ProfileModel>().showBadgeDialog(context)
+                                  }
+                                });
                               }
                             },
                           );
@@ -310,6 +317,7 @@ class _ProjectDetailRouteState extends State<ProjectDetailRoute> {
     return TextFormField(
       controller: donatePopupController,
       keyboardType: TextInputType.number,
+      style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: 'Donation Amount',
         labelStyle: TextStyle(
