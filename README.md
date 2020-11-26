@@ -1,6 +1,6 @@
-# finance
+# Integral Finance
 
-A new Flutter application.
+A personal finance assisstance app powered by Flutter.
 
 ## Getting Started
 
