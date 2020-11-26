@@ -2,7 +2,7 @@
 
 A personal finance assisstance app powered by Flutter.
 
-[Sample Screens](/intro.png)
+![Sample Screens](/intro.png)
 
 ## Getting Started
 
