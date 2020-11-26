@@ -2,6 +2,8 @@
 
 A personal finance assisstance app powered by Flutter.
 
+[Sample Screens](/intro.png)
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
